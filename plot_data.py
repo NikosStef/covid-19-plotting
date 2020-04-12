@@ -37,7 +37,7 @@ def clean_data():
 
     return rec, deaths, cases
 
-# Data from World Health Organization
+# Data from European Centre for Disease Prevention and Control (ECDC)
 def main():
     url='https://covid.ourworldindata.org/data/ecdc/full_data.csv'
     df = pd.read_csv(url, parse_dates=['date'])
