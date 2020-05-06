@@ -1,8 +1,22 @@
 import pandas as pd
 import numpy as np
-import datetime as dt
 from matplotlib import pyplot as plt
-from matplotlib import dates as mdates
+
+DAYS = 50
+COUNTRIES = ['United Kingdom', 'Spain', 'Italy', 'United States', 'World']
+X_PLOTS = 3
+Y_PLOTS = 2
+
+def smooth_curve(points, factor=0.9):
+    smoothed_points = []
+    for point in points:
+        if smoothed_points:
+            previous = smoothed_points[-1]
+            smoothed_points.append(previous * factor + point * (1 - factor))
+        else:
+            smoothed_points.append(point)
+
+    return smoothed_points
 
 def slope(x1, x2):
     if x1 is 0:
@@ -23,7 +37,12 @@ def get_rates(df):
 
     return dict
 
-def main():
+def select_location(df, country:str):
+        temp = df[df.values == country]
+        temp.reset_index(drop=True, inplace=True)
+        return temp
+
+def grouped_data():
     url='https://covid.ourworldindata.org/data/ecdc/full_data.csv'
     df = pd.read_csv(url, parse_dates=['date'])
 
@@ -31,50 +50,52 @@ def main():
 
     df_group = df[['date','location','total_cases','total_deaths']]
     group = df_group.groupby(['date','location'], as_index=False).sum()
+    return group
 
-    date_format = '%d-%m'
-    group['date'] = group['date'].dt.strftime(date_format)
+def main():
 
-    uk_data = group[group.values == 'United Kingdom']
-    spain_data = group[group.values == 'Spain']
-    italy_data = group[group.values == 'Italy']
-    us_data = group[group.values == 'United States']
-    world_data = group[group.values == 'World']
+    group = grouped_data()
 
-    uk_data.reset_index(drop=True, inplace=True)
-    spain_data.reset_index(drop=True, inplace=True)
-    italy_data.reset_index(drop=True, inplace=True)
-    us_data.reset_index(drop=True, inplace=True)
-    world_data.reset_index(drop=True, inplace=True)
+    # *** TO-DO: Minimize the number of loops ***
+    container = {}
+    for location in COUNTRIES:
+        container.update({location : select_location(group, location)})
 
-    uk_rate = get_rates(uk_data.tail(30))
-    spain_rate = get_rates(spain_data.tail(30))
-    italy_rate = get_rates(italy_data.tail(30))
-    us_rate = get_rates(us_data.tail(30))
-    world_rate = get_rates(world_data.tail(30))
+    for location in COUNTRIES:
+        _buff = get_rates(container.get(location).tail(DAYS))
+        container.update({location : _buff})
 
+    for location in COUNTRIES:
+        _curr = container.get(location)
+        _temp = smooth_curve(_curr.values())
+        for index, item in enumerate(_curr.keys()):
+            container.get(location).update({item : _temp[index]})
 
-    """
-    print(type(list(uk_rate.keys())[0]))
-    days = mdates.drange(list(uk_rate.keys())[0].date(), dt.date.today(), dt.timedelta(days=1))
+    days = range(0, DAYS-2)
 
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m'))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=5))
-    """
+    fig, axs = plt.subplots(X_PLOTS, Y_PLOTS, figsize=(15,15))
+    fig.suptitle(f'Rate of increase in COVID-19 number of confirmed new cases in the last {DAYS} days', fontsize=20)
 
-    days = list(spain_rate.keys())
-    fig, ax = plt.subplots(2, 2)
-    ax[0, 0].plot(days, list(spain_rate.values()), label='Spain')
-    ax[0, 0].set_title('Spain')
-    ax[0, 1].plot(days, list(italy_rate.values()), label='Italy')
-    ax[0, 1].set_title('Italy')
-    ax[1, 0].plot(days, list(us_rate.values()), label='United States')
-    ax[1, 0].set_title('United States')
-    ax[1, 1].plot(days, list(uk_rate.values()), label='United Kingdom')
-    ax[1, 1].set_title('United Kingdom')
-    plt.gcf().autofmt_xdate()
+    x = 0
+    y = 0
+    for location in COUNTRIES:
+        if (y == Y_PLOTS):
+            x += 1
+            y = 0
+        if (x == X_PLOTS):
+            break
+        _buff = container.get(location)
+        axs[x, y].plot(days, [*_buff.values()], label=location)
+        axs[x, y].set_title(location)
+        y += 1
+
+    if (len(COUNTRIES) % 2 == 1):
+        axs[X_PLOTS - 1, Y_PLOTS - 1].remove()
+
+    for ax in axs.flat:
+        ax.set(xlabel='Days', ylabel='Rate')
+
     fig.savefig('rates.png')
-    fig.show()
 
 
 
