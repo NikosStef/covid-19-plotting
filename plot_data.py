@@ -54,13 +54,15 @@ def main():
     world_data = group[group.values == 'World']
 
     uk_data.reset_index(drop=True, inplace=True)
+    uk_data.drop(range(0,70), inplace=True)
     world_data.reset_index(drop=True, inplace=True)
 
-    plt.plot(uk_data['date'], uk_data['total_cases'], '-g')
-    plt.plot(uk_data['date'], uk_data['total_deaths'], '-r')
-    #plt.plot(world_data['date'], world_data['total_cases'])
+    dates = range(0, len(uk_data))
 
-    plt.title('No of COVID-19 confirmed cases in the United Kingdom')
+    plt.plot(dates, uk_data['total_cases'], '-g')
+    plt.plot(dates, uk_data['total_deaths'], '-r')
+
+    plt.title('COVID-19 in the United Kingdom')
     plt.ylabel('Total Cases')
     plt.xlabel('Date')
     plt.legend(['Cases', 'Deaths'], loc='upper left')
