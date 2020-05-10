@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-DAYS = 50
+DAYS = 127
 COUNTRIES = ['United Kingdom', 'Spain', 'Italy', 'United States', 'World']
 X_PLOTS = 3
 Y_PLOTS = 2
@@ -22,7 +22,7 @@ def slope(x1, x2):
     if x1 is 0:
         return 0
     else:
-        return (abs(x2 - x1))/x1
+        return (x2 - x1)/x1
 
 def get_rates(df):
     dict = {}
@@ -38,9 +38,9 @@ def get_rates(df):
     return dict
 
 def select_location(df, country:str):
-        temp = df[df.values == country]
-        temp.reset_index(drop=True, inplace=True)
-        return temp
+    temp = df[df.values == country]
+    temp.reset_index(drop=True, inplace=True)
+    return temp
 
 def grouped_data():
     url='https://covid.ourworldindata.org/data/ecdc/full_data.csv'
@@ -74,7 +74,7 @@ def main():
     days = range(0, DAYS-2)
 
     fig, axs = plt.subplots(X_PLOTS, Y_PLOTS, figsize=(15,15))
-    fig.suptitle(f'Rate of increase in COVID-19 number of confirmed new cases in the last {DAYS} days', fontsize=20)
+    fig.suptitle(f'Rate of increase in the number of confirmed new COVID-19 cases in the last {DAYS} days', fontsize=20)
 
     x = 0
     y = 0

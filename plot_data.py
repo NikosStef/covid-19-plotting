@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime
 from matplotlib import pyplot as plt
 
-
+'''
 # Data from John Hopkins University
 def pull_data():
 
@@ -36,6 +35,7 @@ def clean_data():
     cases.reset_index(drop=True, inplace=True)
 
     return rec, deaths, cases
+'''
 
 # Data from European Centre for Disease Prevention and Control (ECDC)
 def main():
@@ -47,15 +47,12 @@ def main():
     df_group = df[['date','location','total_cases','total_deaths']]
     group = df_group.groupby(['date','location'], as_index=False).sum()
 
-    date_format = '%d-%m'
-    group['date'] = group['date'].dt.strftime(date_format)
-
     uk_data = group[group.values == 'United Kingdom']
-    world_data = group[group.values == 'World']
+    #world_data = group[group.values == 'World']
 
     uk_data.reset_index(drop=True, inplace=True)
     uk_data.drop(range(0,70), inplace=True)
-    world_data.reset_index(drop=True, inplace=True)
+    #world_data.reset_index(drop=True, inplace=True)
 
     dates = range(0, len(uk_data))
 
